@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Mock LMS</title></head>
+<body>
+<script>
+  // LMS giả lập: lưu cmi.* vào window.__STORE (test bơm vào), ghi lại mọi lời gọi
+  var params = new URLSearchParams(location.search);
+  var ver = params.get('v');           // '12' | '2004'
+  var store = window.__STORE || {};
+  window.lmsCalls = [];
+  function rec(fn, a, b, r) { lmsCalls.push([fn, a, b, r]); return r; }
+  var state = 'new';
+  if (ver === '12') {
+    window.API = {
+      LMSInitialize: function () { state = 'run'; return rec('init', '', '', 'true'); },
+      LMSGetValue: function (k) { return rec('get', k, '', store[k] !== undefined ? store[k] : ''); },
+      LMSSetValue: function (k, v) { store[k] = v; return rec('set', k, v, 'true'); },
+      LMSCommit: function () { return rec('commit', '', '', 'true'); },
+      LMSFinish: function () { state = 'done'; return rec('finish', '', '', 'true'); },
+      LMSGetLastError: function () { return '0'; }
+    };
+  } else {
+    window.API_1484_11 = {
+      Initialize: function () { state = 'run'; return rec('init', '', '', 'true'); },
+      GetValue: function (k) { return rec('get', k, '', store[k] !== undefined ? store[k] : ''); },
+      SetValue: function (k, v) { store[k] = v; return rec('set', k, v, 'true'); },
+      Commit: function () { return rec('commit', '', '', 'true'); },
+      Terminate: function () { state = 'done'; return rec('finish', '', '', 'true'); },
+      GetLastError: function () { return '0'; }
+    };
+  }
+  window.getStore = function () { return store; };
+  window.getLmsState = function () { return state; };
+</script>
+<iframe id="sco" style="width:100%;height:700px;border:0"></iframe>
+<script>
+  document.getElementById('sco').src = params.get('pkg') + '/index.html';
+  window.unloadSco = function () { document.getElementById('sco').src = 'about:blank'; };
+</script>
+</body></html>

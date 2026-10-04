@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="{{LANG}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{TITLE}}</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: #fff; }
+    #h5p-container { max-width: {{MAX_WIDTH}}; margin: 0 auto; padding: 8px; box-sizing: border-box; }
+    #h5p-error { display: none; font: 15px/1.5 system-ui, sans-serif; color: #8a1c1c; background: #fdecec;
+                 border: 1px solid #f3b6b6; border-radius: 6px; padding: 12px 16px; margin: 16px; }
+  </style>
+  <script src="config.js"></script>
+  <script src="scorm-bridge.js"></script>
+  <script src="player/main.bundle.js"></script>
+</head>
+<body>
+  <div id="h5p-container"></div>
+  <div id="h5p-error"></div>
+  <script>
+  (function () {
+    var session = H5P2SCORM.start();
+    var el = document.getElementById('h5p-container');
+    var options = {
+      id: 'h5p2scorm',
+      h5pJsonPath: './h5p',
+      frameJs: './player/frame.bundle.js',
+      frameCss: './player/styles/h5p.css',
+      frame: false,
+      fullScreen: true,
+      icon: false,
+      reportingIsEnabled: true,
+      xAPIObjectIRI: H5P2SCORM_CONFIG.objectIRI
+    };
+    if (session.previousState) {
+      options.saveFreq = 30;
+      // Định dạng H5P core: contentUserData[subContentId][dataType]; 0 = nội dung chính
+      options.contentUserData = [{ state: session.previousState }];
+    }
+
+    function getState() {
+      var iframe = el.querySelector('iframe');
+      var wins = [];
+      try { if (iframe && iframe.contentWindow) wins.push(iframe.contentWindow); } catch (e) {}
+      wins.push(window);
+      for (var i = 0; i < wins.length; i++) {
+        try {
+          var H = wins[i].H5P;
+          var inst = H && H.instances && H.instances[0];
+          if (inst && typeof inst.getCurrentState === 'function') {
+            var s = inst.getCurrentState();
+            return (s === undefined || s === null) ? null : JSON.stringify(s);
+          }
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    new H5PStandalone.H5P(el, options).then(function () {
+      H5P2SCORM.attach(window.H5P && H5P.externalDispatcher, getState);
+    }).catch(function (err) {
+      var box = document.getElementById('h5p-error');
+      box.style.display = 'block';
+      box.textContent = 'Không tải được nội dung H5P: ' + (err && err.message ? err.message : err);
+      if (window.console) console.error(err);
+    });
+  })();
+  </script>
+</body>
+</html>

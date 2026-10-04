@@ -1,0 +1,23 @@
+{
+  "name": "h5p2scorm",
+  "version": "1.0.0",
+  "description": "Chuyển H5P sang SCORM 1.2 / SCORM 2004",
+  "main": "h5p2scorm.js",
+  "scripts": {
+    "convert": "node h5p2scorm.js",
+    "test": "node h5p2scorm.js samples -o out -m 80 && python test/run_test.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "adm-zip": "^0.6.1",
+    "h5p-standalone": "^3.8.2"
+  },
+  "bin": {
+    "h5p2scorm": "h5p2scorm.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
