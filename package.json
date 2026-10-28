@@ -2,10 +2,12 @@
   "name": "h5p2scorm",
   "version": "1.0.0",
   "description": "Chuyển H5P sang SCORM 1.2 / SCORM 2004",
-  "main": "h5p2scorm.js",
+  "main": "app/main.js",
   "scripts": {
     "convert": "node h5p2scorm.js",
-    "test": "node h5p2scorm.js samples -o out -m 80 && python test/run_test.py"
+    "test": "node h5p2scorm.js samples -o out -m 80 && python test/run_test.py",
+    "app": "electron .",
+    "dist": "electron-builder"
   },
   "keywords": [],
   "author": "",
@@ -19,5 +21,33 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "build": {
+    "appId": "vn.cada.h5p2scorm",
+    "productName": "H5P2SCORM",
+    "files": [
+      "app/**",
+      "h5p2scorm.js",
+      "runtime/**",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Education",
+      "maintainer": "CADA"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.1.0",
+    "electron-builder": "^26.18.0"
   }
 }

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+<title>H5P → SCORM</title>
+<style>
+  body { font: 15px system-ui, sans-serif; margin: 0; padding: 20px; color: #222; }
+  h1 { font-size: 20px; margin: 0 0 14px; }
+  #drop { border: 2px dashed #999; border-radius: 10px; padding: 26px; text-align: center; }
+  #drop.over { border-color: #2563eb; background: #eff6ff; }
+  button { font: inherit; padding: 8px 14px; border-radius: 6px; border: 1px solid #bbb; background: #f5f5f5; cursor: pointer; }
+  button.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+  button:disabled { opacity: .5; cursor: default; }
+  .row { margin: 14px 0; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  input[type=number] { width: 70px; font: inherit; padding: 4px; }
+  #sel { margin: 10px 0; color: #555; word-break: break-all; }
+  #log { max-height: 220px; overflow: auto; font-size: 13px; border-top: 1px solid #ddd; padding-top: 8px; }
+  .ok { color: #15803d } .warn { color: #b45309 } .err { color: #b91c1c }
+</style>
+</head>
+<body>
+<h1>H5P → SCORM</h1>
+<div id="drop">
+  <p>Kéo thả thư mục hoặc file <b>.h5p</b> vào đây</p>
+  <button id="folder">Chọn thư mục…</button>
+  <button id="files">Chọn file…</button>
+</div>
+<div id="sel">Chưa chọn gì.</div>
+<div class="row">
+  <label>Phiên bản SCORM
+    <select id="scorm"><option value="both">1.2 + 2004</option><option value="1.2">1.2</option><option value="2004">2004</option></select>
+  </label>
+  <label>Ngưỡng đạt (%) <input id="mastery" type="number" min="0" max="100" placeholder="—"></label>
+</div>
+<div class="row"><button id="go" class="primary" disabled>Chuyển đổi</button><span id="status"></span></div>
+<div id="log"></div>
+<script>
+  let inputs = [];
+  const $ = (id) => document.getElementById(id);
+  function setInputs(list) {
+    inputs = list;
+    $('sel').textContent = list.length ? 'Đã chọn: ' + list.join(', ') : 'Chưa chọn gì.';
+    $('go').disabled = !list.length;
+    $('log').innerHTML = ''; $('status').textContent = '';
+  }
+  $('folder').onclick = async () => { const d = await api.pickFolder(); if (d) setInputs([d]); };
+  $('files').onclick = async () => { const f = await api.pickFiles(); if (f) setInputs(f); };
+  const drop = $('drop');
+  drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
+  drop.ondragleave = () => drop.classList.remove('over');
+  drop.ondrop = (e) => {
+    e.preventDefault(); drop.classList.remove('over');
+    setInputs([...e.dataTransfer.files].map((f) => api.pathOf(f)));
+  };
+  api.onProgress((p) => { $('status').textContent = `Đang chuyển ${p.index}/${p.total}: ${p.name}`; });
+  function line(cls, text) {
+    const d = document.createElement('div'); d.className = cls; d.textContent = text; $('log').appendChild(d);
+  }
+  $('go').onclick = async () => {
+    $('go').disabled = true; $('log').innerHTML = '';
+    const m = $('mastery').value;
+    const r = await api.convert({ inputs, scorm: $('scorm').value, mastery: m === '' ? null : m });
+    $('go').disabled = false;
+    if (r.error) { $('status').textContent = ''; line('err', r.error); return; }
+    let ok = 0, bad = 0;
+    for (const x of r.results) {
+      if (!x.ok) { bad++; line('err', `✗ ${x.name}: ${x.error}`); }
+      else if (x.missing.length) { ok++; line('warn', `! ${x.name}: thiếu thư viện ${x.missing.join(', ')}`); }
+      else { ok++; line('ok', `✓ ${x.name}`); }
+    }
+    $('status').innerHTML = '';
+    const b = document.createElement('button'); b.textContent = 'Mở thư mục kết quả';
+    b.onclick = () => api.openFolder(r.out); $('status').append(`Xong: ${ok} thành công, ${bad} lỗi. `, b);
+  };
+</script>
+</body>
+</html>

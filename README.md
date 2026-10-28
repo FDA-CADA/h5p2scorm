@@ -103,3 +103,16 @@ scorm-bridge.js      cầu nối xAPI → SCORM API
 player/              trình phát h5p-standalone
 h5p/                 nội dung H5P đã giải nén
 ```
+
+## Ứng dụng desktop (Windows / macOS / Ubuntu)
+
+Giao diện đơn giản: kéo thả (hoặc chọn) thư mục chứa file `.h5p` → bấm **Chuyển đổi**. Cả thư mục con
+đều được quét; kết quả nằm trong thư mục `scorm-out` cạnh nơi chọn.
+
+```bash
+npm run app    # chạy thử
+npm run dist   # đóng gói cho hệ điều hành hiện tại (ra thư mục dist/)
+```
+
+Bản cài cho cả 3 hệ điều hành được build bằng GitHub Actions (`.github/workflows/build.yml`):
+đẩy tag `v*` hoặc chạy thủ công, tải file ở mục Artifacts.

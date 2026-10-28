@@ -344,4 +344,6 @@ function main() {
   if (bad) process.exitCode = 1;
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = { convert, collectInputs };
